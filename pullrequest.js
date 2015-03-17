@@ -9,7 +9,11 @@ var allDiffCount,
     expandedDiffCount,
     collapsedDiffCount,
     collapseAllBtn,
-    expandAllBtn;
+    expandAllBtn,
+    multipleEvents,
+    multipleEventType,
+    multipleEventCount = 0,
+    totalEventCount = 0;
 
 chrome.storage.sync.get({url: ''}, function(items) {
     if (items.url == window.location.origin ||
@@ -32,11 +36,23 @@ chrome.storage.sync.get({url: ''}, function(items) {
         expandAllBtn = $('#pretty-pr-expand-expand-all');
 
         $body.on('click', '#pretty-pr-expand-all', function (e) {
-            $('.bottom-collapse[data-collapsed="true"]').click();
+            var diffsToExpand = $('.js-issues-results .bottom-collapse[data-collapsed="true"]');
+            multipleEvents = true;
+            multipleEventType = 'expand';
+
+            totalEventCount = diffsToExpand.length;
+
+            diffsToExpand.click();
         });
 
         $body.on('click', '#pretty-pr-collapse-all', function (e) {
-            $('.bottom-collapse[data-collapsed="false"]').click();
+            var diffsToCollapse = $('.js-issues-results .bottom-collapse[data-collapsed="false"]');
+            multipleEvents = true;
+            multipleEventType = 'collapse';
+
+            totalEventCount = diffsToCollapse.length;
+
+            diffsToCollapse.click();
         });
 
         $body.on('click', '.js-selectable-text, .bottom-collapse', function (event) {
@@ -106,14 +122,46 @@ function toggleDiffVisibility(clickedElem, event) {
             .text(collapsedDiffText);
     }
 
-    span.children('.meta')[0].scrollIntoViewIfNeeded();
+    // don't do this if a ton of diffs are being toggled all at once.
+    if (!multipleEvents) {
+        span.children('.meta')[0].scrollIntoViewIfNeeded();
+    } else {
+        multipleEventCount++;
+        // console.log(multipleEventCount);
+    }
 
     updateDiffVisibilityCounts();
 }
 
 function updateDiffVisibilityCounts() {
-    expandedDiffCount = $('.bottom-collapse[data-collapsed="false"]').length;
-    collapsedDiffCount = $('.bottom-collapse[data-collapsed="true"]').length;
+    expandedDiffCount = $('.js-issues-results .bottom-collapse[data-collapsed="false"]').length;
+    collapsedDiffCount = $('.js-issues-results .bottom-collapse[data-collapsed="true"]').length;
+
+    // console.log(multipleEventType + 'ing diff ' + multipleEventCount + ' of ' + totalEventCount);
+
+    if (multipleEventType === 'collapse') {
+        if (multipleEventCount === totalEventCount) {
+            // console.log('all done with the ' + totalEventCount + ' ' + multipleEventType + ' events... scrollTop(0)');
+            // reset, and scroll to top
+            multipleEvents = false;
+            multipleEventCount = 0;
+            totalEventCount = 0;
+
+            $('body').scrollTop(0);
+        }
+    }
+
+    if (multipleEventType === 'expand') {
+        if (multipleEventCount === totalEventCount) {
+            // console.log('all done with the ' + totalEventCount + ' ' + multipleEventType + ' events... scrollTop(0)');
+            // reset, and scroll to top
+            multipleEvents = false;
+            multipleEventCount = 0;
+            totalEventCount = 0;
+
+            $('body').scrollTop(0);
+        }
+    }
 
     updateExpandCollapseAllButtonStates();
 }
