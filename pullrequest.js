@@ -92,7 +92,10 @@ chrome.storage.sync.get({url: ''}, function(items) {
             }
         });
 
+        // only do this in bulk ONCE.
         allDiffCount = $('.js-issues-results').find('.bottom-collapse').length;
+        expandedDiffCount = $('.js-issues-results .bottom-collapse[data-collapsed="false"]').length;
+        collapsedDiffCount = $('.js-issues-results .bottom-collapse[data-collapsed="true"]').length;
     }
 });
 
@@ -100,70 +103,83 @@ function isDiffCollapsed(bottomCollapseElem) {
     return bottomCollapseElem.attr('data-collapsed') === 'true';
 }
 
+function expandDiff(diff, collapseToggleBtn) {
+    collapseToggleBtn
+        .attr('data-collapsed', 'false')
+        .text(expandedDiffText);
+
+    expandedDiffCount++;
+    collapsedDiffCount--;
+}
+
+function collapseDiff(diff, collapseToggleBtn) {
+    collapseToggleBtn
+        .attr('data-collapsed', 'true')
+        .text(collapsedDiffText);
+
+    collapsedDiffCount++;
+    expandedDiffCount--;
+}
+
 function toggleDiffVisibility(clickedElem, event) {
     var span = $(clickedElem).closest('[id^=diff-]');
     var bottomCollapse;
+    var $target = $(event.target);
 
-    span.children('.data, .image').slideToggle(200);
+    span.children('.data, .image').toggleClass('hide');
 
-    if ($(event.target).hasClass('bottom-collapse')) {
-        bottomCollapse = $(clickedElem).closest('.bottom-collapse');
+    if ($target.is('.bottom-collapse')) {
+        bottomCollapse = $target;
     } else {
         bottomCollapse = span.children('.bottom-collapse');
     }
 
     if (isDiffCollapsed(bottomCollapse)) {
-        bottomCollapse
-            .attr('data-collapsed', 'false')
-            .text(expandedDiffText);
+        expandDiff(span, bottomCollapse);
     } else {
-        bottomCollapse
-            .attr('data-collapsed', 'true')
-            .text(collapsedDiffText);
+        collapseDiff(span, bottomCollapse);
     }
 
     // don't do this if a ton of diffs are being toggled all at once.
     if (!multipleEvents) {
         span.children('.meta')[0].scrollIntoViewIfNeeded();
     } else {
-        multipleEventCount++;
-        // console.log(multipleEventCount);
-    }
-
-    updateDiffVisibilityCounts();
-}
-
-function updateDiffVisibilityCounts() {
-    expandedDiffCount = $('.js-issues-results .bottom-collapse[data-collapsed="false"]').length;
-    collapsedDiffCount = $('.js-issues-results .bottom-collapse[data-collapsed="true"]').length;
-
-    // console.log(multipleEventType + 'ing diff ' + multipleEventCount + ' of ' + totalEventCount);
-
-    if (multipleEventType === 'collapse') {
-        if (multipleEventCount === totalEventCount) {
-            // console.log('all done with the ' + totalEventCount + ' ' + multipleEventType + ' events... scrollTop(0)');
-            // reset, and scroll to top
-            multipleEvents = false;
-            multipleEventCount = 0;
-            totalEventCount = 0;
-
-            $('body').scrollTop(0);
-        }
-    }
-
-    if (multipleEventType === 'expand') {
-        if (multipleEventCount === totalEventCount) {
-            // console.log('all done with the ' + totalEventCount + ' ' + multipleEventType + ' events... scrollTop(0)');
-            // reset, and scroll to top
-            multipleEvents = false;
-            multipleEventCount = 0;
-            totalEventCount = 0;
-
-            $('body').scrollTop(0);
-        }
+        handleMultipleEvents();
     }
 
     updateExpandCollapseAllButtonStates();
+}
+
+function handleMultipleEvents() {
+    if (multipleEvents) {
+        multipleEventCount++;
+
+        // console.log(multipleEventType + 'ing diff ' + multipleEventCount + ' of ' + totalEventCount);
+
+        if (multipleEventType === 'collapse') {
+            if (multipleEventCount === totalEventCount) {
+                // console.log('all done with the ' + totalEventCount + ' ' + multipleEventType + ' events... scrollTop(0)');
+                // reset, and scroll to top
+                multipleEvents = false;
+                multipleEventCount = 0;
+                totalEventCount = 0;
+
+                $('body').scrollTop(0);
+            }
+        }
+
+        if (multipleEventType === 'expand') {
+            if (multipleEventCount === totalEventCount) {
+                // console.log('all done with the ' + totalEventCount + ' ' + multipleEventType + ' events... scrollTop(0)');
+                // reset, and scroll to top
+                multipleEvents = false;
+                multipleEventCount = 0;
+                totalEventCount = 0;
+
+                $('body').scrollTop(0);
+            }
+        }
+    }
 }
 
 function updateExpandCollapseAllButtonStates() {
@@ -190,17 +206,17 @@ function updateExpandCollapseAllButtonStates() {
 
 function collapseAdditions () {
     if (isGitHub) {
-        $(this).closest('[id^=diff-]').find('.blob-code-addition').parent('tr').slideToggle();
+        $(this).closest('[id^=diff-]').find('.blob-code-addition').parent('tr').toggleClass('hide');
     } else {
-        $(this).closest('[id^=diff-]').find('.gi').slideToggle();
+        $(this).closest('[id^=diff-]').find('.gi').toggleClass('hide');
     }
 }
 
 function collapseDeletions () {
     if (isGitHub) {
-        $(this).closest('[id^=diff-]').find('.blob-code-deletion').parent('tr').slideToggle();
+        $(this).closest('[id^=diff-]').find('.blob-code-deletion').parent('tr').toggleClass('hide');
     } else {
-        $(this).closest('[id^=diff-]').find('.gd').slideToggle();
+        $(this).closest('[id^=diff-]').find('.gd').toggleClass('hide');
     }
 }
 
@@ -212,17 +228,15 @@ function getDiffSpans (path) {
 
 function collapseDiffs (path) {
     var spans = getDiffSpans(path).closest('[id^=diff-]');
-    spans.children('.data, .image').slideUp(200);
-    spans.children('.bottom-collapse').text(collapsedDiffText);
+    spans.children('.data, .image').toggleClass('hide');
 
-    updateDiffVisibilityCounts();
+    collapseDiff(spans, spans.children('.bottom-collapse'));
 }
 
 function expandDiffs (path) {
     var spans = getDiffSpans(path).closest('[id^=diff-]');
-    spans.children('.data, .image').slideDown(200);
-    spans.children('.bottom-collapse').text(expandedDiffText);
+    spans.children('.data, .image').toggleClass('hide');
 
-    updateDiffVisibilityCounts();
+    expandDiff(spans, spans.children('.bottom-collapse'));
 }
 
