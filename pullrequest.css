@@ -35,3 +35,15 @@
   background-color: #f0f0f0;
 }
 
+.bottom-collapse.hide {
+    display: none;
+}
+
+.bottom-collapse.show {
+    display: block;
+}
+
+/* Expand / Collapse All Button Group */
+.pretty-pr-button-group {
+    margin-left: 10px;
+}

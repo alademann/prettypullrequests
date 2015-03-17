@@ -1,5 +1,15 @@
 
 var isGitHub = $("meta[property='og:site_name']").attr('content') === 'GitHub';
+var expandedDiffText  = 'Collapse Diff';
+var collapsedDiffText = 'Expand Diff';
+var expandAllText = 'Expand All';
+var collapseAllText = 'Collapse All';
+
+var allDiffCount,
+    expandedDiffCount,
+    collapsedDiffCount,
+    collapseAllBtn,
+    expandAllBtn;
 
 chrome.storage.sync.get({url: ''}, function(items) {
     if (items.url == window.location.origin ||
@@ -11,19 +21,27 @@ chrome.storage.sync.get({url: ''}, function(items) {
             '</span>'
         ).insertAfter('.actions');
 
-        $('<div class="bottom-collapse meta">Click to Collapse</div>').insertAfter('.data.highlight.blob-wrapper');
+        $('<div class="bottom-collapse meta" data-collapsed="false">' + expandedDiffText + '</div>').insertAfter('.data.highlight.blob-wrapper');
+
+        $('<div class="button-group right pretty-pr-button-group" id="pretty-pr-expand-collapse-all"><button type="button" class="minibutton" id="pretty-pr-collapse-all">' + collapseAllText + '</button><button type="button" class="minibutton" id="pretty-pr-expand-all">' + expandAllText + '</button></div>')
+            .prependTo('#toc');
 
         var $body = $('body');
 
-        $body.on('click', '.js-selectable-text, .bottom-collapse', function (e) {
-            var span = $(this).closest('[id^=diff-]');
-            span.children('.data, .image').slideToggle(200);
-            if ($(e.target).hasClass('bottom-collapse')) {
-                $(this).closest('.bottom-collapse').toggle();
-            } else {
-                span.children('.bottom-collapse').toggle();
-            }
-            span.children('.meta')[0].scrollIntoViewIfNeeded();
+        collapseAllBtn = $('#pretty-pr-expand-collapse-all');
+        expandAllBtn = $('#pretty-pr-expand-expand-all');
+
+        $body.on('click', '#pretty-pr-expand-all', function (e) {
+            $('.bottom-collapse[data-collapsed="true"]').click();
+        });
+
+        $body.on('click', '#pretty-pr-collapse-all', function (e) {
+            $('.bottom-collapse[data-collapsed="false"]').click();
+        });
+
+        $body.on('click', '.js-selectable-text, .bottom-collapse', function (event) {
+            console.log(event);
+            toggleDiffVisibility(this, event);
         });
 
         $body.on('click', '.js-collapse-additions', collapseAdditions);
@@ -58,8 +76,72 @@ chrome.storage.sync.get({url: ''}, function(items) {
                 }
             }
         });
+
+        allDiffCount = $('.js-issues-results').find('.bottom-collapse').length;
     }
 });
+
+function isDiffCollapsed(bottomCollapseElem) {
+    return bottomCollapseElem.attr('data-collapsed') === 'true';
+}
+
+function toggleDiffVisibility(clickedElem, event) {
+    var span = $(clickedElem).closest('[id^=diff-]');
+    var bottomCollapse;
+
+    span.children('.data, .image').slideToggle(200);
+
+    if ($(event.target).hasClass('bottom-collapse')) {
+        bottomCollapse = $(clickedElem).closest('.bottom-collapse');
+    } else {
+        bottomCollapse = span.children('.bottom-collapse');
+    }
+
+    if (isDiffCollapsed(bottomCollapse)) {
+        bottomCollapse
+            .attr('data-collapsed', 'false')
+            .text(expandedDiffText);
+    } else {
+        bottomCollapse
+            .attr('data-collapsed', 'true')
+            .text(collapsedDiffText);
+    }
+
+    span.children('.meta')[0].scrollIntoViewIfNeeded();
+
+    updateDiffVisibilityCounts();
+}
+
+function updateDiffVisibilityCounts() {
+    expandedDiffCount = $('.bottom-collapse[data-collapsed="false"]').length;
+    collapsedDiffCount = $('.bottom-collapse[data-collapsed="true"]').length;
+
+    console.log('expanded: ' + expandedDiffCount, 'collapsed: ' + collapsedDiffCount, 'total: ' + allDiffCount);
+
+    updateExpandCollapseAllButtonStates();
+}
+
+function updateExpandCollapseAllButtonStates() {
+    if (expandedDiffCount === allDiffCount) {
+        expandAllBtn
+            .prop('disabled', true)
+            .addClass('disabled');
+    } else {
+        expandAllBtn
+            .prop('disabled', false)
+            .removeClass('disabled');
+    }
+
+    if (collapsedDiffCount === allDiffCount) {
+        collapseAllBtn
+            .prop('disabled', true)
+            .addClass('disabled');
+    } else {
+        collapseAllBtn
+            .prop('disabled', false)
+            .removeClass('disabled');
+    }
+}
 
 function collapseAdditions () {
     if (isGitHub) {
@@ -86,12 +168,16 @@ function getDiffSpans (path) {
 function collapseDiffs (path) {
     var spans = getDiffSpans(path).closest('[id^=diff-]');
     spans.children('.data, .image').slideUp(200);
-    spans.children('.bottom-collapse').hide();
+    spans.children('.bottom-collapse').text(collapsedDiffText);
+
+    updateDiffVisibilityCounts();
 }
 
 function expandDiffs (path) {
     var spans = getDiffSpans(path).closest('[id^=diff-]');
     spans.children('.data, .image').slideDown(200);
-    spans.children('.bottom-collapse').show();
+    spans.children('.bottom-collapse').text(expandedDiffText);
+
+    updateDiffVisibilityCounts();
 }
 
