@@ -40,7 +40,6 @@ chrome.storage.sync.get({url: ''}, function(items) {
         });
 
         $body.on('click', '.js-selectable-text, .bottom-collapse', function (event) {
-            console.log(event);
             toggleDiffVisibility(this, event);
         });
 
@@ -115,8 +114,6 @@ function toggleDiffVisibility(clickedElem, event) {
 function updateDiffVisibilityCounts() {
     expandedDiffCount = $('.bottom-collapse[data-collapsed="false"]').length;
     collapsedDiffCount = $('.bottom-collapse[data-collapsed="true"]').length;
-
-    console.log('expanded: ' + expandedDiffCount, 'collapsed: ' + collapsedDiffCount, 'total: ' + allDiffCount);
 
     updateExpandCollapseAllButtonStates();
 }
