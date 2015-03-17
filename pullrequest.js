@@ -19,9 +19,9 @@ chrome.storage.sync.get({url: ''}, function(items) {
             var span = $(this).closest('[id^=diff-]');
             span.children('.data, .image').slideToggle(200);
             if ($(e.target).hasClass('bottom-collapse')) {
-                $(this).closest('div.bottom-collapse').toggle();
+                $(this).closest('.bottom-collapse').toggle();
             } else {
-                span.children('div.bottom-collapse').toggle();
+                span.children('.bottom-collapse').toggle();
             }
             span.children('.meta')[0].scrollIntoViewIfNeeded();
         });
@@ -86,12 +86,12 @@ function getDiffSpans (path) {
 function collapseDiffs (path) {
     var spans = getDiffSpans(path).closest('[id^=diff-]');
     spans.children('.data, .image').slideUp(200);
-    spans.children('div.bottom-collapse').hide();
+    spans.children('.bottom-collapse').hide();
 }
 
 function expandDiffs (path) {
     var spans = getDiffSpans(path).closest('[id^=diff-]');
     spans.children('.data, .image').slideDown(200);
-    spans.children('div.bottom-collapse').show();
+    spans.children('.bottom-collapse').show();
 }
 
