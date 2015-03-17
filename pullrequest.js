@@ -28,7 +28,7 @@ chrome.storage.sync.get({url: ''}, function(items) {
         $('<div class="bottom-collapse meta" data-collapsed="false">' + expandedDiffText + '</div>').insertAfter('.data.highlight.blob-wrapper');
 
         $('<div class="button-group right pretty-pr-button-group" id="pretty-pr-expand-collapse-all"><button type="button" class="minibutton" id="pretty-pr-collapse-all">' + collapseAllText + '</button><button type="button" class="minibutton" id="pretty-pr-expand-all">' + expandAllText + '</button></div>')
-            .prependTo('#toc');
+            .insertAfter('#toc > .button-group');
 
         var $body = $('body');
 
