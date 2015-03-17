@@ -17,19 +17,21 @@
 }
 
 .bottom-collapse {
-    cursor: pointer;
-    font-family: Monaco, 'Liberation Mono', Courier, monospace;
-    text-align: center !important;
+    font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace; /* Matches Github diff line-numbers font */
+    padding: 4px 0 2px;
     margin: 0;
+    cursor: pointer;
+    text-align: center !important;
+    color: #4183c4; /* Github standard link color */
+    border-top: 1px solid #d8d8d8; /* Matches Github .file-header style */
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    background-color: #f7f7f7; /* Matches Github .file-header style */
 }
 
-.bottom-collapse {
-    cursor: pointer;
-    font-family: Monaco, 'Liberation Mono', Courier, monospace;
-    text-align: center !important;
-    margin: 0;
+.bottom-collapse:hover,
+.bottom-collapse:focus {
+  text-decoration: underline; /* Github standard link hover effect */
+  background-color: #f0f0f0;
 }
 
-.bottom-collapse.meta {
-    border-bottom: none !important;
-}
