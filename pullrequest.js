@@ -32,8 +32,8 @@ chrome.storage.sync.get({url: ''}, function(items) {
 
         var $body = $('body');
 
-        collapseAllBtn = $('#pretty-pr-expand-collapse-all');
-        expandAllBtn = $('#pretty-pr-expand-expand-all');
+        collapseAllBtn = $('#pretty-pr-collapse-all');
+        expandAllBtn = $('#pretty-pr-expand-all');
 
         $body.on('click', '#pretty-pr-expand-all', function (e) {
             var diffsToExpand = $('.js-issues-results .bottom-collapse[data-collapsed="true"]');
@@ -143,11 +143,10 @@ function toggleDiffVisibility(clickedElem, event) {
     // don't do this if a ton of diffs are being toggled all at once.
     if (!multipleEvents) {
         span.children('.meta')[0].scrollIntoViewIfNeeded();
+        updateExpandCollapseAllButtonStates();
     } else {
         handleMultipleEvents();
     }
-
-    updateExpandCollapseAllButtonStates();
 }
 
 function handleMultipleEvents() {
@@ -165,6 +164,8 @@ function handleMultipleEvents() {
                 totalEventCount = 0;
 
                 $('body').scrollTop(0);
+
+                updateExpandCollapseAllButtonStates();
             }
         }
 
@@ -177,12 +178,16 @@ function handleMultipleEvents() {
                 totalEventCount = 0;
 
                 $('body').scrollTop(0);
+
+                updateExpandCollapseAllButtonStates();
             }
         }
     }
 }
 
 function updateExpandCollapseAllButtonStates() {
+    // console.log('expanded: ' + expandedDiffCount, 'collapsed: ' + collapsedDiffCount, 'all: ' + allDiffCount);
+
     if (expandedDiffCount === allDiffCount) {
         expandAllBtn
             .prop('disabled', true)
